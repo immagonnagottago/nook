@@ -1,9 +1,15 @@
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://vwhkitpaomguuanwbdxy.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3aGtpdHBhb21ndXVhbndiZHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MzQ3NDksImV4cCI6MjA4OTAxMDc0OX0.13MqBoAdjCZb_nw01leSV3XCRk0vqKeTe1L_QFaZ93M';
-const ROOM_ID       = 1;
 const HEARTBEAT_MS  = 20_000;   // ping presence every 20s
 const STALE_MS      = 60_000;   // players absent >60s are pruned
+
+// ── ROOM (edit this to change the room) ─────────────────────────────────────
+const ROOM = {
+  name: 'The Crossroads',
+  description: 'You stand at a dusty crossroads. Ancient stones mark the intersection of two forgotten roads. The wind carries whispers of distant places, but there is nowhere left to go. A weathered signpost stands at the center, its arms pointing in all four directions — each bearing the same inscription: HERE.',
+  exits: 'none'
+};
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -102,7 +108,7 @@ nameInput.addEventListener('keydown', async (e) => {
 
 // ── START GAME ────────────────────────────────────────────────────────────────
 async function startGame() {
-  await loadRoom();
+  loadRoom();
   await loadHistory();
   await refreshPlayers();
 
@@ -119,12 +125,9 @@ async function startGame() {
   window.addEventListener('beforeunload', onLeave);
 }
 
-// ── ROOM ──────────────────────────────────────────────────────────────────────
-async function loadRoom() {
-  const { data } = await sb.from('rooms').select('*').eq('id', ROOM_ID).single();
-  if (data) {
-    roomDesc.textContent = data.description;
-  }
+// ── ROOM (content lives in the ROOM constant at the top of this file) ─────────
+function loadRoom() {
+  roomDesc.textContent = ROOM.description;
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────────────────
@@ -230,12 +233,9 @@ async function handleCommand(raw) {
     await postMessage('emote', action);
 
   } else if (verb === 'look' || verb === 'l') {
-    const { data } = await sb.from('rooms').select('*').eq('id', ROOM_ID).single();
-    if (data) {
-      print('look', null, `[ ${data.name} ]`);
-      print('look', null, data.description);
-      print('look', null, `Exits: none.`);
-    }
+    print('look', null, `[ ${ROOM.name} ]`);
+    print('look', null, ROOM.description);
+    print('look', null, `Exits: ${ROOM.exits}.`);
 
   } else if (verb === 'who') {
     await refreshPlayers();
